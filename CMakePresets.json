@@ -1,0 +1,46 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "linux-ninja-release",
+      "hidden": false,
+      "generator": "Ninja",
+      "description": "Ninja build on Linux (Release)",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "linux-ninja-debug",
+      "hidden": false,
+      "generator": "Ninja",
+      "description": "Ninja build on Linux (Debug)",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-release",
+      "configurePreset": "linux-ninja-release",
+      "description": "Build the Release target",
+      "targets": [ "gameOfLife" ]
+    },
+    {
+      "name": "build-debug",
+      "configurePreset": "linux-ninja-debug",
+      "description": "Build the Debug target",
+      "targets": [ "gameOfLife" ]
+    }
+  ]
+}

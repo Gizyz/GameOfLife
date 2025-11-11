@@ -1,0 +1,22 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "linux-ninja-release-user",
+      "inherits": "linux-ninja-release",
+      "description": "User override for Release build",
+      "hidden": true,
+      "cacheVariables": {
+        "MY_CUSTOM_DEFINE": "1"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-release-user",
+      "inherits": "build-release",
+      "description": "User override build",
+      "hidden": true
+    }
+  ]
+}
