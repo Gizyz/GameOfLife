@@ -8,39 +8,90 @@
   "configurePresets": [
     {
       "name": "linux-ninja-release",
-      "hidden": false,
+      "description": "Linux native Release build using Ninja",
       "generator": "Ninja",
-      "description": "Ninja build on Linux (Release)",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_TOOLCHAIN_FILE": "/home/karl/vcpkg/scripts/buildsystems/vcpkg.cmake"
       }
     },
     {
       "name": "linux-ninja-debug",
-      "hidden": false,
+      "description": "Linux native Debug build using Ninja",
       "generator": "Ninja",
-      "description": "Ninja build on Linux (Debug)",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_TOOLCHAIN_FILE": "/home/karl/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "windows-mingw-release",
+      "hidden": false,
+      "generator": "Ninja",
+      "description": "Cross-compile Windows Release using MinGW-w64 (static linking)",
+      "binaryDir": "/home/karl/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_SYSTEM_NAME": "Windows",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_MAKE_PROGRAM": "/usr/bin/ninja",
+        "CMAKE_C_COMPILER": "x86_64-w64-mingw32-gcc",
+        "CMAKE_CXX_COMPILER": "x86_64-w64-mingw32-g++",
+        "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-static",           
+
+        "CMAKE_TOOLCHAIN_FILE": "/home/karl/vcpkg/scripts/buildsystems/vcpkg.cmake",
+
+        "CMAKE_C_FLAGS": "-static-libgcc -static -Wl,-static",
+        "CMAKE_CXX_FLAGS": "-static-libgcc -static-libstdc++ -static -Wl,-static"
+      }
+    },
+
+    {
+      "name": "windows-mingw-debug",
+      "description": "Cross-compile Windows Debug using MinGW-w64 and Ninja",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_SYSTEM_NAME": "Windows",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "x86_64-w64-mingw32-gcc",
+        "CMAKE_CXX_COMPILER": "x86_64-w64-mingw32-g++",
+        "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic",
+        "CMAKE_TOOLCHAIN_FILE": "/home/karl/vcpkg/scripts/buildsystems/vcpkg.cmake"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "build-release",
+      "name": "build-linux-release",
       "configurePreset": "linux-ninja-release",
-      "description": "Build the Release target",
-      "targets": [ "gameOfLife" ]
+      "description": "Build Linux Release target",
+      "targets": ["gameOfLife"]
     },
     {
-      "name": "build-debug",
+      "name": "build-linux-debug",
       "configurePreset": "linux-ninja-debug",
-      "description": "Build the Debug target",
-      "targets": [ "gameOfLife" ]
+      "description": "Build Linux Debug target",
+      "targets": ["gameOfLife"]
+    },
+    {
+      "name": "build-windows-release",
+      "configurePreset": "windows-mingw-release",
+      "description": "Build Windows Release target",
+      "targets": ["gameOfLife"]
+    },
+    {
+      "name": "build-windows-debug",
+      "configurePreset": "windows-mingw-debug",
+      "description": "Build Windows Debug target",
+      "targets": ["gameOfLife"]
     }
   ]
 }
