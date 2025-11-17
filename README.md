@@ -1,7 +1,7 @@
 # GameOfLife – Installation & Build Guide (Ubuntu)
 
 This guide explains how to install dependencies and build the **GameOfLife** project on Ubuntu using **CMake**.  
-All required C++ libraries (**SFML**, **ImGui**, **fmt**) are fetched automatically using **CMake FetchContent**—no vcpkg or system-level library installation is required except for SFML's native Linux dependencies.
+All required C++ libraries (**SFML**, **ImGui**, **fmt**) are fetched automatically using **CMake FetchContent**—no system-level library installation is required except for SFML's native Linux dependencies.
 
 ---
 
