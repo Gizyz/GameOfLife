@@ -14,8 +14,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_TOOLCHAIN_FILE": "/home/karl/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_CXX_COMPILER": "g++"
       }
     },
     {
@@ -26,8 +25,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_TOOLCHAIN_FILE": "/home/karl/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_CXX_COMPILER": "g++"
       }
     },
     {
@@ -35,7 +33,7 @@
       "hidden": false,
       "generator": "Ninja",
       "description": "Cross-compile Windows Release using MinGW-w64 (static linking)",
-      "binaryDir": "/home/karl/build/${presetName}",
+      "binaryDir": "$env{HOME}/build/${presetName}",
       "cacheVariables": {
         "CMAKE_SYSTEM_NAME": "Windows",
         "CMAKE_BUILD_TYPE": "Release",
@@ -43,15 +41,10 @@
         "CMAKE_C_COMPILER": "x86_64-w64-mingw32-gcc",
         "CMAKE_CXX_COMPILER": "x86_64-w64-mingw32-g++",
         "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres",
-        "VCPKG_TARGET_TRIPLET": "x64-mingw-static",           
-
-        "CMAKE_TOOLCHAIN_FILE": "/home/karl/vcpkg/scripts/buildsystems/vcpkg.cmake",
-
         "CMAKE_C_FLAGS": "-static-libgcc -static -Wl,-static",
         "CMAKE_CXX_FLAGS": "-static-libgcc -static-libstdc++ -static -Wl,-static"
       }
     },
-
     {
       "name": "windows-mingw-debug",
       "description": "Cross-compile Windows Debug using MinGW-w64 and Ninja",
@@ -62,9 +55,7 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "x86_64-w64-mingw32-gcc",
         "CMAKE_CXX_COMPILER": "x86_64-w64-mingw32-g++",
-        "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres",
-        "VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic",
-        "CMAKE_TOOLCHAIN_FILE": "/home/karl/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres"
       }
     }
   ],

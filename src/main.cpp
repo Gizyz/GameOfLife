@@ -163,7 +163,7 @@ int main()
 {
     UniqueContainer<Point, PointHash> points;
     bool paused = true;
-
+    cout << "hallo";
     sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
     int desktopWidth = desktopMode.size.x;
     int desktopHeight = desktopMode.size.y;
