@@ -96,9 +96,9 @@ int neighbourCheck(UniqueContainer<Point, PointHash> &points, float x, float y)
     int count = 0;
     int radius = 1;
 
-    for (int dx = -radius; dx <= radius; dx++)
+    for (float dx = -radius; dx <= radius; dx++)
     {
-        for (int dy = -radius; dy <= radius; dy++)
+        for (float dy = -radius; dy <= radius; dy++)
         {
             if (dx == 0 && dy == 0)
                 continue;
@@ -178,46 +178,33 @@ void line_fill(UniqueContainer<Point, PointHash> &points, sf::Vector2f &prev, sf
 }
 void draw_grid(sf::RenderWindow &window, UniqueContainer<Point, PointHash> &points)
 {
-    sf::VertexBuffer buffer;
-    sf::VertexArray cpuVertices;
+    sf::VertexBuffer buffer(sf::PrimitiveType::Triangles, sf::VertexBuffer::Usage::Static);
 
-    buffer.setPrimitiveType(sf::PrimitiveType::Triangles);
-    cpuVertices.setPrimitiveType(sf::PrimitiveType::Triangles);
-
-    cpuVertices.clear();
-    cpuVertices.resize(points.data().size() * 6);
-
-    buffer.create(points.size() * 6); // avoid reallocations
-
+    // Calculate total vertices needed (6 per cell)
+    std::vector<sf::Vertex> vertices;
     for (auto &p : points.data())
     {
         // Ensure x and y are cast to float (in case they are integers)
         float x = static_cast<float>(p.x);
         float y = static_cast<float>(p.y);
 
-        // cpuVertices.append({sf::Vector2f(x, y), sf::Color::White});
-        // cpuVertices.append({sf::Vector2f(x + 1, y), sf::Color::White});
-        // cpuVertices.append({sf::Vector2f(x + 1, y + 1), sf::Color::White});
-        // cpuVertices.append({sf::Vector2f(x, y + 1), sf::Color::White});
-
         // Add two triangles to form a quad (rectangle)
         // First triangle: (top-left, top-right, bottom-left)
-        cpuVertices.append(sf::Vertex(sf::Vector2f(x, y), sf::Color::White));
-        cpuVertices.append(sf::Vertex(sf::Vector2f(x + 1, y), sf::Color::White));
-        cpuVertices.append(sf::Vertex(sf::Vector2f(x, y + 1), sf::Color::White));
+        vertices.push_back(sf::Vertex(sf::Vector2f(x, y), sf::Color::Color::White));
+        vertices.push_back(sf::Vertex(sf::Vector2f(x + 1, y), sf::Color::White));
+        vertices.push_back(sf::Vertex(sf::Vector2f(x, y + 1), sf::Color::White));
 
-        // Second triangle: (bottom-left, top-right, bottom-right)
-        cpuVertices.append(sf::Vertex(sf::Vector2f(x, y + 1), sf::Color::White));
-        cpuVertices.append(sf::Vertex(sf::Vector2f(x + 1, y), sf::Color::White));
-        cpuVertices.append(sf::Vertex(sf::Vector2f(x + 1, y + 1), sf::Color::White));
+        // Second triangle
+        vertices.push_back(sf::Vertex(sf::Vector2f(x, y + 1), sf::Color::Cyan));
+        vertices.push_back(sf::Vertex(sf::Vector2f(x + 1, y), sf::Color::Cyan));
+        vertices.push_back(sf::Vertex(sf::Vector2f(x + 1, y + 1), sf::Color::Cyan));
     }
-    if (!buffer.create(cpuVertices.getVertexCount()))
+    if (!buffer.create(vertices.size()))
     {
         std::cerr << "Failed to create vertex buffer!\n";
         return;
     }
-    buffer.update(&cpuVertices[0]);
-
+    buffer.update(vertices.data());
     window.draw(buffer);
 }
 
@@ -230,7 +217,8 @@ int main()
     int desktopWidth = desktopMode.size.x;
     int desktopHeight = desktopMode.size.y;
 
-    sf::RenderWindow window(sf::VideoMode({800, 600}), "My Window");
+    sf::RenderWindow window(sf::VideoMode({800, 600}), "Game of Life");
+
     int appWidth = window.getSize().x;
     int appHeight = window.getSize().y;
 
