@@ -39,7 +39,6 @@ public:
         if (it == set_.end())
             return false;
         return true;
-
     }
     // Insert element if it doesn't already exist
     bool insert(const T &element)
@@ -92,78 +91,141 @@ struct Vec2
 {
     float zoom, x, y;
 };
-int neightbourCheck(UniqueContainer<Point, PointHash> &points, float x, float y) {
+int neighbourCheck(UniqueContainer<Point, PointHash> &points, float x, float y)
+{
     int count = 0;
     int radius = 1;
-    for (int dx = -radius; dx <= radius; dx++) {
-        for (int dy= -radius; dy <= radius; dy++) {
-            if (dx == 0 && dy == 0) continue;
 
-            Point neightbour{x+dx, y+dy};
-            if (points.contains(neightbour)){
+    for (int dx = -radius; dx <= radius; dx++)
+    {
+        for (int dy = -radius; dy <= radius; dy++)
+        {
+            if (dx == 0 && dy == 0)
+                continue;
+
+            Point neighbour{x + dx, y + dy};
+
+            if (points.contains(neighbour))
+            {
                 count++;
             }
         }
     }
     return count;
 }
-void board_change(UniqueContainer<Point, PointHash> &points){
+void board_change(UniqueContainer<Point, PointHash> &points)
+{
     vector<Point> toAdd;
     vector<Point> toRemove;
 
-    for (auto &p : points.data()) {
-        int alive = neightbourCheck(points, p.x, p.y);
+    std::unordered_set<Point, PointHash> checkedPoints;
 
-        if (alive < 2){
-            toRemove.push_back(p);
-        } else if (alive == 2 || alive == 3) {
-            continue;
-        } else if (alive > 3){
+    for (auto &p : points.data())
+    {
+        int alive = neighbourCheck(points, p.x, p.y);
+
+        if (alive < 2 || alive > 3)
+        {
             toRemove.push_back(p);
         }
+        else if (alive == 2 || alive == 3)
+        {
+            continue;
+        }
 
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy= -1; dy <= 1; dy++) {
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
                 int nx = p.x + dx;
                 int ny = p.y + dy;
 
-                if (dx == 0 && dy == 0) continue;
-                
-                Point nPt{nx, ny};
+                if (dx == 0 && dy == 0)
+                    continue;
 
-                if(!points.contains(nPt)) {
-                    int nai = neightbourCheck(points, nx, ny);
-
-                    if (nai == 3) toAdd.push_back(nPt);
+                Point neighbor{nx, ny};
+                if (checkedPoints.find(neighbor) == checkedPoints.end())
+                {
+                    checkedPoints.insert(neighbor);
+                    if (!points.contains(neighbor) && neighbourCheck(points, nx, ny) == 3)
+                    {
+                        toAdd.push_back(neighbor);
+                    }
                 }
             }
-        }      
+        }
     }
-    for (auto& p: toRemove) {
+    for (auto &p : toRemove)
+    {
         points.remove(p);
     }
-    for (auto& p: toAdd) {
+    for (auto &p : toAdd)
+    {
         points.insert(p);
     }
 }
-void draw_grid(sf::RenderWindow &window, UniqueContainer<Point, PointHash> &points, bool &paused)
+void line_fill(UniqueContainer<Point, PointHash> &points, sf::Vector2f &prev, sf::Vector2f &current)
 {
-    window.clear(sf::Color::Black);
-    if (not paused){
-    board_change(points);}
+    sf::Vector2f fill;
+
+    for (float t = 0; t < 1; t += 0.01)
+    {
+        fill.x = current.x + t * (prev.x - current.x);
+        fill.y = current.y + t * (prev.y - current.y);
+
+        points.insert({(int)fill.x, (int)fill.y});
+    }
+}
+void draw_grid(sf::RenderWindow &window, UniqueContainer<Point, PointHash> &points)
+{
+    sf::VertexBuffer buffer;
+    sf::VertexArray cpuVertices;
+
+    buffer.setPrimitiveType(sf::PrimitiveType::Triangles);
+    cpuVertices.setPrimitiveType(sf::PrimitiveType::Triangles);
+
+    cpuVertices.clear();
+    cpuVertices.resize(points.data().size() * 6);
+
+    buffer.create(points.size() * 6); // avoid reallocations
+
     for (auto &p : points.data())
     {
-        sf::RectangleShape rectangle({1.f, 1.f});
-        rectangle.setPosition({p.x, p.y});
-        window.draw(rectangle);
+        // Ensure x and y are cast to float (in case they are integers)
+        float x = static_cast<float>(p.x);
+        float y = static_cast<float>(p.y);
+
+        // cpuVertices.append({sf::Vector2f(x, y), sf::Color::White});
+        // cpuVertices.append({sf::Vector2f(x + 1, y), sf::Color::White});
+        // cpuVertices.append({sf::Vector2f(x + 1, y + 1), sf::Color::White});
+        // cpuVertices.append({sf::Vector2f(x, y + 1), sf::Color::White});
+
+        // Add two triangles to form a quad (rectangle)
+        // First triangle: (top-left, top-right, bottom-left)
+        cpuVertices.append(sf::Vertex(sf::Vector2f(x, y), sf::Color::White));
+        cpuVertices.append(sf::Vertex(sf::Vector2f(x + 1, y), sf::Color::White));
+        cpuVertices.append(sf::Vertex(sf::Vector2f(x, y + 1), sf::Color::White));
+
+        // Second triangle: (bottom-left, top-right, bottom-right)
+        cpuVertices.append(sf::Vertex(sf::Vector2f(x, y + 1), sf::Color::White));
+        cpuVertices.append(sf::Vertex(sf::Vector2f(x + 1, y), sf::Color::White));
+        cpuVertices.append(sf::Vertex(sf::Vector2f(x + 1, y + 1), sf::Color::White));
     }
+    if (!buffer.create(cpuVertices.getVertexCount()))
+    {
+        std::cerr << "Failed to create vertex buffer!\n";
+        return;
+    }
+    buffer.update(&cpuVertices[0]);
+
+    window.draw(buffer);
 }
 
 int main()
 {
     UniqueContainer<Point, PointHash> points;
     bool paused = true;
-    cout << "hallo";
+
     sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
     int desktopWidth = desktopMode.size.x;
     int desktopHeight = desktopMode.size.y;
@@ -173,30 +235,23 @@ int main()
     int appHeight = window.getSize().y;
 
     sf::View camera(
-        sf::Vector2f(appWidth / 2.f, appHeight / 2.f),   // center
-        sf::Vector2f(appWidth * 1.f, appHeight * 1.f)    // size
-    );   
+        sf::Vector2f(appWidth / 2.f, appHeight / 2.f), // center
+        sf::Vector2f(appWidth * 1.f, appHeight * 1.f)  // size
+    );
     Vec2 offset = {0.05f, 0.f, 0.f};
     camera.setSize({appWidth * offset.zoom, appHeight * offset.zoom});
 
     window.setPosition({desktopWidth / 2 - appWidth / 2, desktopHeight / 2 - appHeight / 2});
     window.setFramerateLimit(60);
-    
+
     sf::Vector2i prevMousePos;
+    sf::Vector2f prevDrawPos;
     bool rightDragging = false;
     bool leftDragging = false;
 
     // run the program as long as the window is open
     while (window.isOpen())
     {
-        // clears window on resize
-        draw_grid(window, points, paused);
-
-        window.setView(camera);
-        window.display();
-
-
-
         while (const std::optional event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
@@ -207,76 +262,76 @@ int main()
                 appWidth = window.getSize().x;
                 appHeight = window.getSize().y;
             }
-            else if (const auto* e = event->getIf<sf::Event::KeyPressed>()) {
-                if (e->scancode  == sf::Keyboard::Scancode ::P){
-                    if (paused){
+            else if (const auto *e = event->getIf<sf::Event::KeyPressed>())
+            {
+                if (e->scancode == sf::Keyboard::Scancode ::P)
+                {
+                    if (paused)
                         paused = false;
-                    } else {
+                    else
                         paused = true;
-                    }
-                     
                 }
             }
-
-            // --- Handle mouse button presses ---
-            else if (const auto* e = event->getIf<sf::Event::MouseButtonPressed>())
+            else if (const auto *e = event->getIf<sf::Event::MouseButtonPressed>())
             {
                 if (e->button == sf::Mouse::Button::Left)
                 {
-                    leftDragging = true;          
-                    sf::Vector2i MousePos = { e->position.x, e->position.y };
-                    sf::Vector2f worldPos = window.mapPixelToCoords(MousePos, camera);
-                    points.insert({ static_cast<int>(std::round(worldPos.x)), 
-                                    static_cast<int>(std::round(worldPos.y)) });     
+                    leftDragging = true;
+                    sf::Vector2i pixel = sf::Mouse::getPosition(window);
+                    prevDrawPos = window.mapPixelToCoords(pixel, camera);
                 }
-                else if (e->button == sf::Mouse::Button::Right)
+                if (e->button == sf::Mouse::Button::Right)
                 {
                     rightDragging = true;
-                    prevMousePos = { e->position.x, e->position.y };
+                    prevMousePos = sf::Mouse::getPosition(window);
                 }
             }
-
-            else if (const auto* e = event->getIf<sf::Event::MouseButtonReleased>())
+            else if (const auto *e = event->getIf<sf::Event::MouseButtonReleased>())
             {
-                if (e->button == sf::Mouse::Button::Right)
-                    rightDragging = false;
                 if (e->button == sf::Mouse::Button::Left)
                     leftDragging = false;
+                if (e->button == sf::Mouse::Button::Right)
+                    rightDragging = false;
             }
 
-            // --- Smooth panning using mouse move events ---
-            else if (const auto* e = event->getIf<sf::Event::MouseMoved>())
+            else if (const auto *e = event->getIf<sf::Event::MouseWheelScrolled>())
             {
-                if (rightDragging)
-                {
-                    sf::Vector2i pos(e->position.x, e->position.y);
-
-                    sf::Vector2i delta = pos - prevMousePos;
-                    prevMousePos = pos;
-
-                    offset.x -= delta.x * offset.zoom;
-                    offset.y -= delta.y * offset.zoom;
-                    camera.move({-delta.x * offset.zoom, -delta.y * offset.zoom});
-                }
-                if (leftDragging)
-                {
-                    sf::Vector2i MousePos = { e->position.x, e->position.y };
-                    sf::Vector2f worldPos = window.mapPixelToCoords(MousePos, camera);
-                    points.insert({ static_cast<int>(std::round(worldPos.x)), 
-                                    static_cast<int>(std::round(worldPos.y)) });                
-
-                }
+                offset.zoom += e->delta * 0.01f;
+                camera.setSize({1.f * appWidth * offset.zoom, 1.f * appHeight * offset.zoom});
             }
-
-            // --- Zoom ---
-            else if (const auto* e = event->getIf<sf::Event::MouseWheelScrolled>())
-            {
-                int wheelDelta = e->delta;
-                offset.zoom += 1.f * wheelDelta * 0.01f;
-                camera.setSize({appWidth * offset.zoom, appHeight * offset.zoom});
-            }
-            window.setTitle("Game of Life( Paused: " + to_string(paused) + ")");
         }
+
+        // --- REALTIME INPUT  ---
+        // draws points in world cords
+        if (leftDragging)
+        {
+            sf::Vector2i pixel = sf::Mouse::getPosition(window);
+            sf::Vector2f world = window.mapPixelToCoords(pixel, camera);
+
+            points.insert({(int)world.x, (int)world.y});
+            line_fill(points, prevDrawPos, world);
+
+            prevDrawPos = world;
+        }
+        // pans screen based on mouse drag
+        if (rightDragging)
+        {
+            sf::Vector2i pos = sf::Mouse::getPosition(window);
+            sf::Vector2i delta = pos - prevMousePos;
+            prevMousePos = pos;
+            offset.x -= delta.x * offset.zoom;
+            offset.y -= delta.y * offset.zoom;
+            camera.move({-delta.x * offset.zoom, -delta.y * offset.zoom});
+        }
+        // --- Simulation update (moved out of drawing) ---
+        if (!paused && !leftDragging)
+            board_change(points);
+
+        // --- Rendering ---
+        window.clear();
+        window.setView(camera);
+        draw_grid(window, points); // now draw only
+        window.display();
     }
     return 0;
 }
