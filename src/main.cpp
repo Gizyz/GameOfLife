@@ -91,7 +91,7 @@ struct Vec2
 {
     float zoom, x, y;
 };
-int neighbourCheck(UniqueContainer<Point, PointHash> &points, float x, float y)
+int neighbourCheck(UniqueContainer<Point, PointHash> &points, int x, int y)
 {
     int count = 0;
     int radius = 1;
@@ -115,54 +115,48 @@ int neighbourCheck(UniqueContainer<Point, PointHash> &points, float x, float y)
 }
 void board_change(UniqueContainer<Point, PointHash> &points)
 {
-    vector<Point> toAdd;
-    vector<Point> toRemove;
+    unordered_map<Point, int, PointHash> neighborCount;
 
-    std::unordered_set<Point, PointHash> checkedPoints;
-
+    // Count neighbors of all live cells
     for (auto &p : points.data())
     {
-        int alive = neighbourCheck(points, p.x, p.y);
-
-        if (alive < 2 || alive > 3)
-        {
-            toRemove.push_back(p);
-        }
-        else if (alive == 2 || alive == 3)
-        {
-            continue;
-        }
-
         for (int dx = -1; dx <= 1; dx++)
         {
             for (int dy = -1; dy <= 1; dy++)
             {
-                int nx = p.x + dx;
-                int ny = p.y + dy;
-
                 if (dx == 0 && dy == 0)
                     continue;
 
-                Point neighbor{nx, ny};
-                if (checkedPoints.find(neighbor) == checkedPoints.end())
-                {
-                    checkedPoints.insert(neighbor);
-                    if (!points.contains(neighbor) && neighbourCheck(points, nx, ny) == 3)
-                    {
-                        toAdd.push_back(neighbor);
-                    }
-                }
+                Point n{p.x + dx, p.y + dy};
+                neighborCount[n]++;
             }
         }
     }
+
+    vector<Point> toRemove;
+    vector<Point> toAdd;
+
+    // Check live cells for survival
+    for (auto &p : points.data())
+    {
+        int n = neighborCount[p];
+        if (!(n == 2 || n == 3))
+            toRemove.push_back(p);
+    }
+
+    // Check dead cells for birth
+    for (auto &[cell, count] : neighborCount)
+    {
+        if (!points.contains(cell) && count == 3)
+            toAdd.push_back(cell);
+    }
+
+    // Apply changes
     for (auto &p : toRemove)
-    {
         points.remove(p);
-    }
+
     for (auto &p : toAdd)
-    {
         points.insert(p);
-    }
 }
 void line_fill(UniqueContainer<Point, PointHash> &points, sf::Vector2f &prev, sf::Vector2f &current)
 {
